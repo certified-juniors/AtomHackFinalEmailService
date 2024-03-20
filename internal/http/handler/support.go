@@ -69,7 +69,7 @@ func (h *Handler) SendToSupport(c *gin.Context) {
 		attachments[file.Filename] = content
 	}
 
-	body := fmt.Sprintf("%s\n\n%s%s", message, "------------", "Дата обращения: ", createdAtFormatted)
+	body := fmt.Sprintf("%s%s\n%s\n\n%s%s", "Email отправителя: ", email, message, "------------", "Дата обращения: ", createdAtFormatted)
 	err = h.s.SendMailToSupport(title, body, attachments)
 	if err != nil {
 		logrus.Errorf("Failed to send SupportEmail: %v", err)

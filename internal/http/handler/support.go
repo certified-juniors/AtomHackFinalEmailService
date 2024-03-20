@@ -30,7 +30,7 @@ func (h *Handler) SendToSupport(c *gin.Context) {
 	email := c.PostForm("mail")
 	title := c.PostForm("title")
 	message := c.PostForm("message")
-	createdAt := c.PostForm("createdAt")
+	createdAt := c.PostForm("timestamp")
 
 	createdTime, err := time.Parse(time.RFC3339, createdAt)
 	if err != nil {

@@ -1,269 +1,79 @@
 package handler
 
 import (
-	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"strconv"
-	"time"
 
-	"github.com/SicParv1sMagna/AtomHackMarsService/internal/model"
 	"github.com/gin-gonic/gin"
 )
 
-// GetDraftDocuments возвращает черновики документов.
-// @Summary Возвращает черновики документов.
-// @Description Возвращает список черновиков документов с учетом параметров page и pageSize.
+// AcceptDocument принимает новый документ.
+// @Summary Принимает новый документ.
+// @Description Принимает новый документ с параметрами id, title, owner, createdAt, payload и files.
 // @Tags Документы
 // @Accept json
 // @Produce json
-// @Param page query int false "Номер страницы" default(1)
-// @Param pageSize query int false "Размер страницы" default(10)
-// @Param owner query string false "Отправитель"
-// @Param title query string false "Название"
-// @Success 200 {array} model.GetDocuments "Успешный ответ"
+// @Param id formData int true "ID документа"
+// @Param title formData string true "Заголовок документа"
+// @Param owner formData string true "Владелец документа"
+// @Param createdAt formData string true "Дата и время создания документа в формате RFC3339"
+// @Param payload formData string true "Payload документа"
+// @Param files formData file true "Файлы, прикрепленные к документу"
+// @Success 200 {object} model.AcceptDocument "Успешный ответ"
+// @Failure 400 {object} model.ErrorResponse "Ошибка в запросе"
 // @Failure 500 {object} model.ErrorResponse "Внутренняя ошибка сервера"
-// @Router /document/draft [get]
-func (h *Handler) GetDraftDocuments(c *gin.Context) {
-    page, _ := strconv.Atoi(c.Query("page"))
-    pageSize, _ := strconv.Atoi(c.Query("pageSize"))
-	owner:= c.Query("owner")
-	title:= c.Query("title")
-    // Получаем черновики документов
-    documents, total, err := h.r.GetDraftDocuments(page, pageSize, owner, title)
+// @Router /document/send-to-support [post]
+// SendToSupport принимает новый документ и отправляет его на поддержку.
+func (h *Handler) SendToSupport(c *gin.Context) {
+    // Получение данных о документе из POST-запроса
+    id, err := strconv.Atoi(c.PostForm("id"))
     if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve documents: " + err.Error()})
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get id from request"})
+        return
+    }
+    title := c.PostForm("title")
+    owner := c.PostForm("owner")
+    createdAtStr := c.PostForm("createdAt")
+    payload := c.PostForm("payload")
+
+    // Получение файлов из POST-запроса
+    form, err := c.MultipartForm()
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse form data"})
+        return
+    }
+    files := form.File["files"]
+
+    // Создание карты вложений для метода SendMail
+    attachments := make(map[string][]byte)
+    for _, file := range files {
+        // Открытие файла
+        src, err := file.Open()
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to open file: " + file.Filename})
+            return
+        }
+        defer src.Close()
+
+        // Считывание содержимого файла
+        content, err := ioutil.ReadAll(src)
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read file: " + file.Filename})
+            return
+        }
+
+        // Добавление содержимого файла в карту вложений
+        attachments[file.Filename] = content
+    }
+
+    // Отправка сообщения на почту
+    err = h.s.SendMailToSupport("New Document Received", "ID: "+strconv.Itoa(id)+"\nTitle: "+title+"\nOwner: "+owner+"\nCreated At: "+createdAtStr+"\nPayload: "+payload, attachments)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send email: " + err.Error()})
         return
     }
 
-    c.JSON(http.StatusOK, gin.H{"items":documents,
-								"total": total})
-}
-
-// GetFormedDocuments возвращает сформированные документы.
-// @Summary Возвращает сформированные документы.
-// @Description Возвращает список сформированных документов с учетом параметров page и pageSize.
-// @Tags Документы
-// @Accept json
-// @Produce json
-// @Param page query int false "Номер страницы" default(1)
-// @Param pageSize query int false "Размер страницы" default(10)
-// @Param deliveryStatus query string false "Статус доставки" default(PENDING)
-// @Param ownerOrTitle query string false "Отправитель или Название"
-// @Success 200 {array} model.GetDocuments "Успешный ответ"
-// @Failure 500 {object} model.ErrorResponse "Внутренняя ошибка сервера"
-// @Router /document/formed [get]
-func (h *Handler) GetFormedDocuments(c *gin.Context) {
-    // Получаем параметры из URL
-    page, _ := strconv.Atoi(c.Query("page"))
-    pageSize, _ := strconv.Atoi(c.Query("pageSize"))
-	deliveryStatus := model.DeliveryStatus(c.Query("deliveryStatus"))
-	ownerOrTitle := c.Query("ownerOrTitle")
-    // Получаем сформированные документы
-    documents, total, err := h.r.GetFormedDocuments(page, pageSize, deliveryStatus, ownerOrTitle)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve documents: " + err.Error()})
-        return
-    }
-
-    c.JSON(http.StatusOK, gin.H{"items":documents,
-								"total": total})
-}
-
-// CreateDocument создает новый документ.
-// @Summary Создает новый документ.
-// @Description Создает новый документ на основе переданных данных JSON, возвращает id созданного документа.
-// @Tags Документы
-// @Accept json
-// @Produce json
-// @Success 200 {object} model.DocumentCreate "Успешный ответ"
-// @Failure 400 {object} model.ErrorResponse "Ошибка в запросе"
-// @Failure 500 {object} model.ErrorResponse "Внутренняя ошибка сервера"
-// @Router /document [post]
-func (h *Handler) CreateDocument(c *gin.Context) {
-	doc := model.Document{
-		Status:    model.StatusDraft,
-		CreatedAt: time.Now(),
-	}
-
-	docID, err := h.r.CreateDocument(&doc)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{
-		"id": docID,
-	})
-}
-
-// GetDocumentByID получает документ по его ID.
-// @Summary Получает документ по ID.
-// @Description Получает документ из репозитория по указанному ID.
-// @Tags Документы
-// @Accept json
-// @Produce json
-// @Param docID path int true "ID документа"
-// @Success 200 {object} model.Document "Успешный ответ"
-// @Failure 400 {object} model.ErrorResponse "Ошибка в запросе"
-// @Failure 500 {object} model.ErrorResponse "Внутренняя ошибка сервера"
-// @Router /document/{docID} [get]
-func (h *Handler) GetDocumentByID(c *gin.Context) {
-	docID, err := strconv.Atoi(c.Param("docID"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get file from request: " + err.Error()})
-		return
-	}
-
-	doc, err := h.r.GetDocumentByID(uint(docID))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, doc)
-}
-
-// UpdateDocument обновляет информацию о документе.
-// @Summary Обновляет информацию о документе.
-// @Description Обновляет информацию о документе на основе переданных данных JSON.
-// @Tags Документы
-// @Accept json
-// @Produce json
-// @Param docID path int true "ID документа"
-// @Param doc body model.DocumentUpdate true "Пользовательский объект в формате JSON"
-// @Success 200 {object} model.MessageResponse "Успешный ответ"
-// @Failure 400 {object} model.ErrorResponse "Ошибка в запросе"
-// @Failure 500 {object} model.ErrorResponse "Внутренняя ошибка сервера"
-// @Router /document/{docID} [put]
-func (h *Handler) UpdateDocument(c *gin.Context) {
-	docID, err := strconv.Atoi(c.Param("docID"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get file from request: " + err.Error()})
-		return
-	}
-
-	var doc model.Document
-
-	if err := c.BindJSON(&doc); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to bind JSON: " + err.Error()})
-		return
-	}
-
-	if err := h.r.UpdateDocument(uint(docID), &doc); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Document updated successfully"})
-}
-
-// DeleteDocument удаляет документ по его ID.
-// @Summary Удаляет документ по ID.
-// @Description Удаляет документ из репозитория по указанному ID.
-// @Tags Документы
-// @Accept json
-// @Produce json
-// @Param docID path int true "ID документа"
-// @Success 200 {object} model.MessageResponse "Успешный ответ"
-// @Failure 400 {object} model.ErrorResponse "Ошибка в запросе"
-// @Failure 500 {object} model.ErrorResponse "Внутренняя ошибка сервера"
-// @Router /document/{docID} [delete]
-func (h *Handler) DeleteDocument(c *gin.Context) {
-	docID, err := strconv.Atoi(c.Param("docID"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get document ID from request: " + err.Error()})
-		return
-	}
-
-	if err := h.r.DeleteDocument(uint(docID)); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete document: " + err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Document deleted successfully"})
-}
-
-// SendDocument отправляет документ на Землю.
-// @Summary Отправляет документ на Землю.
-// @Description Отправляет документ на Землю по docID.
-// @Tags Документы
-// @Accept json
-// @Produce json
-// @Param docID path int true "ID документа"
-// @Success 200 {object} model.MessageResponse "Успешный ответ"
-// @Failure 400 {object} model.ErrorResponse "Ошибка в запросе"
-// @Failure 500 {object} model.ErrorResponse "Внутренняя ошибка сервера"
-// @Router /document/{docID} [post]
-func (h *Handler) SendDocument(c *gin.Context) {
-	docID, err := strconv.Atoi(c.Param("docID"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get document ID from request: " + err.Error()})
-		return
-	}
-
-	doc, err := h.r.GetDocumentByID(uint(docID))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get document from database: " + err.Error()})
-		return
-	}
-
-	docSubmitted, err := h.r.SendDocument(uint(docID))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send document: " + err.Error()})
-		return
-	}
-
-	docJSON, err := json.Marshal(docSubmitted)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to serialize document: " + err.Error()})
-		return
-	}
-
-	// Отправка документа в Kafka
-	if err = h.p.SendReport(h.p.KafkaCfg.Topic, string(docJSON)); err != nil {
-		if err := h.r.UpdateDocument(uint(docID), doc); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update document message: " + err.Error()})
-			return
-		}
-
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send message: " + err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Document sent to Kafka successfully"})
-}
-
-// UpdateStatusSuccess обновляет статус документа на SUCCESS.
-// @Summary Обновляет статус документа на SUCCESS.
-// @Description Обновляет статус документа на SUCCESS по указанному docID.
-// @Tags Документы
-// @Accept json
-// @Produce json
-// @Param docID path int true "ID документа"
-// @Success 200 {object} model.MessageResponse "Успешный ответ"
-// @Failure 400 {object} model.ErrorResponse "Ошибка в запросе"
-// @Failure 500 {object} model.ErrorResponse "Внутренняя ошибка сервера"
-// @Router /document/{docID}/status [put]
-func (h *Handler) UpdateStatusSuccess(c *gin.Context){
-	docID, err := strconv.Atoi(c.Param("docID"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get document ID from request: " + err.Error()})
-		return
-	}
-
-	doc, err := h.r.GetDocumentByID(uint(docID))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get document from database: " + err.Error()})
-		return
-	}
-
-	statusSuccess := model.DeliveryStatusSuccess
-	doc.DeliveryStatus = &statusSuccess
-	receicedTime := time.Now()
-	doc.ReceivedTime = &receicedTime
-
-	if err := h.r.UpdateDocument(uint(docID), doc); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Document updated status SUCCESS successfully"})
+    // Отправляем ответ клиенту
+    c.JSON(http.StatusOK, gin.H{"message": "Email sent successfully"})
 }

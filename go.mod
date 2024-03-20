@@ -1,22 +1,25 @@
-module github.com/SicParv1sMagna/AtomHackMarsService
+module github.com/certified-juniors/AtomHackFinalEmailService
 
 go 1.21.3
 
 require (
 	github.com/IBM/sarama v1.43.0
+	github.com/SicParv1sMagna/AtomHackMarsService v0.0.0-20240310160814-b646151567ac
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/gin-gonic/gin v1.9.1
 	github.com/joho/godotenv v1.5.1
-	github.com/minio/minio-go/v7 v7.0.68
 	github.com/sirupsen/logrus v1.9.3
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.0
 	github.com/swaggo/swag v1.16.3
-	gorm.io/driver/postgres v1.5.6
-	gorm.io/gorm v1.25.7
 )
 
-require github.com/chenzhuoyu/iasm v0.9.1 // indirect
+require (
+	github.com/chenzhuoyu/iasm v0.9.1 // indirect
+	github.com/minio/minio-go/v7 v7.0.68 // indirect
+	gorm.io/driver/postgres v1.5.6 // indirect
+	gorm.io/gorm v1.25.7 // indirect
+)
 
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
@@ -39,7 +42,6 @@ require (
 	github.com/go-playground/validator/v10 v10.19.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect

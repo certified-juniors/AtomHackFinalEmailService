@@ -1,25 +1,21 @@
 package handler
 
 import (
-	"github.com/SicParv1sMagna/AtomHackMarsService/internal/config"
-	"github.com/SicParv1sMagna/AtomHackMarsService/internal/http/repository"
-	"github.com/SicParv1sMagna/AtomHackMarsService/internal/kafka"
-	log "github.com/sirupsen/logrus"
+	"github.com/certified-juniors/AtomHackFinalEmailService/internal/smtp"
 )
 
 type Handler struct {
-	r *repository.Repository
-	p *kafka.Producer
+	// p *kafka.Producer
+	s *smtp.SMTP
 }
 
-func New(repo *repository.Repository, config *config.App) *Handler {
-	producer, err := kafka.NewProducer(&config.Kafka)
-	if err != nil {
-		log.Fatal("Error occured while creating producer", err)
-	}
-
+func New(SMTP *smtp.SMTP) *Handler {
+	// producer, err := kafka.NewProducer(&config.Kafka)
+	// if err != nil {
+	// 	log.Fatal("Error occured while creating producer", err)
+	// }
 	return &Handler{
-		r: repo,
-		p: producer,
+		// p: producer,
+		s: SMTP, 
 	}
 }

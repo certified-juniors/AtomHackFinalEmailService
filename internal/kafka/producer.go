@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/IBM/sarama"
-	"github.com/SicParv1sMagna/AtomHackMarsService/internal/config"
+	"github.com/certified-juniors/AtomHackFinalEmailService/internal/config"
 )
 
 type Producer struct {

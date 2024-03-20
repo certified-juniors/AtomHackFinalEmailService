@@ -1,9 +1,9 @@
 package app
 
 import (
-	"github.com/SicParv1sMagna/AtomHackMarsService/internal/config"
-	"github.com/SicParv1sMagna/AtomHackMarsService/internal/http/handler"
-	"github.com/SicParv1sMagna/AtomHackMarsService/internal/http/repository"
+	"github.com/certified-juniors/AtomHackFinalEmailService/internal/config"
+	"github.com/certified-juniors/AtomHackFinalEmailService/internal/http/handler"
+	"github.com/certified-juniors/AtomHackFinalEmailService/internal/smtp"
 )
 
 type Application struct {
@@ -17,12 +17,9 @@ func New() (*Application, error) {
 		return nil, err
 	}
 
-	repo, err := repository.New(cfg)
-	if err != nil {
-		return nil, err
-	}
+	smtp := smtp.NewSMTP(&cfg.SMTP)
 
-	h := handler.New(repo, cfg)
+	h := handler.New(smtp)
 
 	app := &Application{
 		cfg:     cfg,

@@ -3,14 +3,14 @@ package main
 import (
 	"log"
 
-	"github.com/SicParv1sMagna/AtomHackMarsService/internal/app"
+	"github.com/certified-juniors/AtomHackFinalEmailService/internal/app"
 )
 
 // @title AtomHackMarsBackend RestAPI
 // @version 1.0
 // @description API server for Mars application
 
-// @host http://localhost:8080
+// @host http://localhost:8081
 // @BasePath /api/v1
 
 func main() {

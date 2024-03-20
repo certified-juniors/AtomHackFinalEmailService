@@ -1,10 +1,9 @@
 package config
 
 type App struct {
-	ErrorLevel string `env:"MARS_ERROR_LEVEL" envDefault:"info"`
+	ErrorLevel string `env:"EMAIL_SERVICE_ERROR_LEVEL" envDefault:"info"`
 
-	API      API
-	Database Database
-	Minio    Minio
-	Kafka    Kafka
+	API   API
+	SMTP  SMTP
+	Kafka Kafka
 }

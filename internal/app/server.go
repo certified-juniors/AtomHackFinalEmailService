@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/SicParv1sMagna/AtomHackMarsService/docs"
+	"github.com/certified-juniors/AtomHackFinalEmailService/docs"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -18,7 +18,7 @@ func (app *Application) Run() {
 	docs.SwaggerInfo.Title = "AtomHackMarsBackend RestAPI"
 	docs.SwaggerInfo.Description = "API server for Mars application"
 	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = "localhost:8080"
+	docs.SwaggerInfo.Host = "localhost:8081"
 	docs.SwaggerInfo.BasePath = "/api/v1"
 
 	// r.Use(middleware.CorsMiddleware())
@@ -33,16 +33,7 @@ func (app *Application) Run() {
 	{
 		DocumentGroup := ApiGroup.Group("/document")
 		{
-			DocumentGroup.GET("/draft", app.handler.GetDraftDocuments)
-			DocumentGroup.GET("/formed", app.handler.GetFormedDocuments)
-			DocumentGroup.POST("/", app.handler.CreateDocument)
-			DocumentGroup.POST("/:docID", app.handler.SendDocument)
-			DocumentGroup.GET("/:docID", app.handler.GetDocumentByID)
-			DocumentGroup.PUT("/:docID", app.handler.UpdateDocument)
-			DocumentGroup.DELETE("/:docID", app.handler.DeleteDocument)
-			DocumentGroup.PUT("/:docID/file", app.handler.UploadFile)
-			DocumentGroup.DELETE("/:docID/file/:fileID", app.handler.DeleteFile)
-			DocumentGroup.PUT("/:docID/status", app.handler.UpdateStatusSuccess)
+			DocumentGroup.POST("/send-to-support", app.handler.SendToSupport)
 
 		}
 	}

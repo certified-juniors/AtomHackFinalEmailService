@@ -32,6 +32,8 @@ func (h *Handler) SendToSupport(c *gin.Context) {
 	message := c.PostForm("message")
 	createdAt := c.PostForm("createdAt")
 
+	fmt.Println("created at", createdAt)
+
 	createdTime, err := time.Parse(time.RFC3339, createdAt)
 	if err != nil {
 		logrus.Errorf("Failed to parse timestamp: %v", err)

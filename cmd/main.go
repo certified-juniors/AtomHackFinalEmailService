@@ -6,12 +6,12 @@ import (
 	"github.com/certified-juniors/AtomHackFinalEmailService/internal/app"
 )
 
-// @title AtomHackMarsBackend RestAPI
+// @title AtomHackFinalEmailService RestAPI
 // @version 1.0
-// @description API server for Mars application
+// @description API server for EmailService application
 
 // @host http://localhost:8081
-// @BasePath /api/v1
+// @BasePath /api
 
 func main() {
 	log.Println("Application start!")

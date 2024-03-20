@@ -1,17 +1,12 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "API server for Mars application",
-        "title": "AtomHackMarsBackend RestAPI",
-        "contact": {},
-        "version": "1.0"
+        "contact": {}
     },
-    "host": "http://localhost:8080",
-    "basePath": "/api/v1",
     "paths": {
-        "/document": {
+        "/send-to-support": {
             "post": {
-                "description": "Создает новый документ на основе переданных данных JSON, возвращает id созданного документа.",
+                "description": "Принимает новое обращение с параметрами mail, title, message, createdAt и files.",
                 "consumes": [
                     "application/json"
                 ],
@@ -19,452 +14,43 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Документы"
+                    "EmailService"
                 ],
-                "summary": "Создает новый документ.",
-                "responses": {
-                    "200": {
-                        "description": "Успешный ответ",
-                        "schema": {
-                            "$ref": "#/definitions/model.DocumentCreate"
-                        }
-                    },
-                    "400": {
-                        "description": "Ошибка в запросе",
-                        "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
-                        "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/document/draft": {
-            "get": {
-                "description": "Возвращает список черновиков документов с учетом параметров page и pageSize.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Документы"
-                ],
-                "summary": "Возвращает черновики документов.",
+                "summary": "Принимает сообщение (обращение).",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Номер страницы",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "Размер страницы",
-                        "name": "pageSize",
-                        "in": "query"
+                        "type": "string",
+                        "description": "Email пользователя",
+                        "name": "mail",
+                        "in": "formData",
+                        "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Отправитель",
-                        "name": "owner",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Название",
+                        "description": "Заголовок обращения",
                         "name": "title",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Успешный ответ",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/model.GetDocuments"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
-                        "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/document/formed": {
-            "get": {
-                "description": "Возвращает список сформированных документов с учетом параметров page и pageSize.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Документы"
-                ],
-                "summary": "Возвращает сформированные документы.",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Номер страницы",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "Размер страницы",
-                        "name": "pageSize",
-                        "in": "query"
+                        "in": "formData",
+                        "required": true
                     },
                     {
                         "type": "string",
-                        "default": "PENDING",
-                        "description": "Статус доставки",
-                        "name": "deliveryStatus",
-                        "in": "query"
+                        "description": "Сообщение",
+                        "name": "message",
+                        "in": "formData",
+                        "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Отправитель или Название",
-                        "name": "ownerOrTitle",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Успешный ответ",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/model.GetDocuments"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
-                        "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/document/{docID}": {
-            "get": {
-                "description": "Получает документ из репозитория по указанному ID.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Документы"
-                ],
-                "summary": "Получает документ по ID.",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID документа",
-                        "name": "docID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Успешный ответ",
-                        "schema": {
-                            "$ref": "#/definitions/model.Document"
-                        }
-                    },
-                    "400": {
-                        "description": "Ошибка в запросе",
-                        "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
-                        "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Обновляет информацию о документе на основе переданных данных JSON.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Документы"
-                ],
-                "summary": "Обновляет информацию о документе.",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID документа",
-                        "name": "docID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Пользовательский объект в формате JSON",
-                        "name": "doc",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.DocumentUpdate"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Успешный ответ",
-                        "schema": {
-                            "$ref": "#/definitions/model.MessageResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Ошибка в запросе",
-                        "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
-                        "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Отправляет документ на Землю по docID.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Документы"
-                ],
-                "summary": "Отправляет документ на Землю.",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID документа",
-                        "name": "docID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Успешный ответ",
-                        "schema": {
-                            "$ref": "#/definitions/model.MessageResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Ошибка в запросе",
-                        "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
-                        "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "Удаляет документ из репозитория по указанному ID.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Документы"
-                ],
-                "summary": "Удаляет документ по ID.",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID документа",
-                        "name": "docID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Успешный ответ",
-                        "schema": {
-                            "$ref": "#/definitions/model.MessageResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Ошибка в запросе",
-                        "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
-                        "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/document/{docID}/file": {
-            "put": {
-                "description": "Загружает файл в хранилище MinIO, связывает его с указанным документом,возвращает id загруженного файла.",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Файлы"
-                ],
-                "summary": "Загружает файл.",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Идентификатор документа",
-                        "name": "docID",
-                        "in": "path",
+                        "description": "Дата и время создания обращения в формате RFC3339",
+                        "name": "createdAt",
+                        "in": "formData",
                         "required": true
                     },
                     {
                         "type": "file",
-                        "description": "Файл для загрузки",
-                        "name": "file",
+                        "description": "Файлы, прикрепленные к обращению",
+                        "name": "files",
                         "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Успешный ответ",
-                        "schema": {
-                            "$ref": "#/definitions/model.FileUpload"
-                        }
-                    },
-                    "400": {
-                        "description": "Ошибка в запросе",
-                        "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
-                        "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/document/{docID}/file/{fileID}": {
-            "delete": {
-                "description": "Удаляет файл из хранилища MinIO и из базы данных.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Файлы"
-                ],
-                "summary": "Удаляет файл.",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Идентификатор документа",
-                        "name": "docID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Идентификатор файла",
-                        "name": "fileID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Успешный ответ",
-                        "schema": {
-                            "$ref": "#/definitions/model.MessageResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Ошибка в запросе",
-                        "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
-                        "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/document/{docID}/status": {
-            "put": {
-                "description": "Обновляет статус документа на SUCCESS по указанному docID.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Документы"
-                ],
-                "summary": "Обновляет статус документа на SUCCESS.",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID документа",
-                        "name": "docID",
-                        "in": "path",
                         "required": true
                     }
                 ],
@@ -492,121 +78,11 @@
         }
     },
     "definitions": {
-        "model.DeliveryStatus": {
-            "type": "string",
-            "enum": [
-                "SUCCESS",
-                "PENDING",
-                "ERROR"
-            ],
-            "x-enum-varnames": [
-                "DeliveryStatusSuccess",
-                "DeliveryStatusPending",
-                "DeliveryStatusError"
-            ]
-        },
-        "model.Document": {
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "deliveryStatus": {
-                    "$ref": "#/definitions/model.DeliveryStatus"
-                },
-                "files": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.File"
-                    }
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "owner": {
-                    "type": "string"
-                },
-                "payload": {
-                    "type": "string"
-                },
-                "receivedTime": {
-                    "type": "string"
-                },
-                "sentTime": {
-                    "type": "string"
-                },
-                "status": {
-                    "$ref": "#/definitions/model.Status"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.DocumentCreate": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "model.DocumentUpdate": {
-            "type": "object",
-            "properties": {
-                "owner": {
-                    "type": "string"
-                },
-                "payload": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
         "model.ErrorResponse": {
             "type": "object",
             "properties": {
                 "error": {
                     "type": "string"
-                }
-            }
-        },
-        "model.File": {
-            "type": "object",
-            "properties": {
-                "documentID": {
-                    "description": "Внешний ключ для связи с Document",
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "path": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.FileUpload": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "model.GetDocuments": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Document"
-                    }
-                },
-                "total": {
-                    "type": "integer"
                 }
             }
         },
@@ -617,19 +93,6 @@
                     "type": "string"
                 }
             }
-        },
-        "model.Status": {
-            "type": "string",
-            "enum": [
-                "DELETED",
-                "DRAFT",
-                "FORMED"
-            ],
-            "x-enum-varnames": [
-                "StatusDeleted",
-                "StatusDraft",
-                "StatusFormed"
-            ]
         }
     }
 }

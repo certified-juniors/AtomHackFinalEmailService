@@ -112,4 +112,70 @@ func (c *SMTP) SendMailToSupport(subject, body string, attachments map[string][]
 	return nil
 }
 
+func (c *SMTP) SendMailToClient(subject, body string, attachments map[string][]byte, clientEmail string) error {
+    conn, err := smtp.Dial(fmt.Sprintf("%s:%d", c.SMTPCfg.SmtpHost, c.SMTPCfg.SmtpPort))
+    if err != nil {
+        fmt.Println("Ошибка при подключении к SMTP серверу:", err)
+        return err
+    }
+    defer conn.Close()
+
+    // Аутентификация с использованием кастомной функции
+    auth := customAuth(c.SMTPCfg.SupportUsername, c.SMTPCfg.SupportPassword, c.SMTPCfg.SmtpHost)
+    if err := conn.Auth(auth); err != nil {
+        fmt.Println("Ошибка при аутентификации:", err)
+        return err
+    }
+
+    // Отправка письма
+    if err := conn.Mail(c.SMTPCfg.SupportUsername); err != nil {
+        fmt.Println("Ошибка при отправке адреса отправителя:", err)
+        return err
+    }
+    if err := conn.Rcpt(clientEmail); err != nil {
+        fmt.Println("Ошибка при отправке адреса получателя:", err)
+        return err
+    }
+    data, err := conn.Data()
+    if err != nil {
+        fmt.Println("Ошибка при отправке данных письма:", err)
+        return err
+    }
+    defer data.Close()
+
+    // Формирование заголовков письма
+    message := fmt.Sprintf("From: %s\r\n", c.SMTPCfg.SupportUsername)
+    message += fmt.Sprintf("To: %s\r\n", clientEmail)
+    message += fmt.Sprintf("Subject: %s\r\n", subject)
+    message += "MIME-version: 1.0\r\n"
+    message += "Content-Type: multipart/mixed; boundary=boundary\r\n\r\n"
+    message += "--boundary\r\n"
+    message += "Content-Type: text/plain; charset=utf-8\r\n"
+    message += "\r\n" + body + "\r\n"
+
+    // Добавление вложений к письму
+    for filename, content := range attachments {
+        message += fmt.Sprintf("--boundary\r\n")
+        message += fmt.Sprintf("Content-Type: application/octet-stream\r\n")
+        message += fmt.Sprintf("Content-Disposition: attachment; filename=\"%s\"\r\n", filename)
+        message += "Content-Transfer-Encoding: base64\r\n\r\n"
+        // Кодирование содержимого файла в Base64
+        encoded := base64.StdEncoding.EncodeToString(content)
+        message += encoded + "\r\n"
+    }
+
+    // Завершение письма
+    message += "--boundary--\r\n"
+
+    // Отправка письма
+    _, err = fmt.Fprintf(data, message)
+    if err != nil {
+        fmt.Println("Ошибка при записи данных письма:", err)
+        return err
+    }
+
+    fmt.Println("Письмо успешно отправлено!")
+    return nil
+}
+
 

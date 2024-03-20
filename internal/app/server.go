@@ -15,13 +15,12 @@ import (
 func (app *Application) Run() {
 	r := gin.Default()
 
-	docs.SwaggerInfo.Title = "AtomHackMarsBackend RestAPI"
-	docs.SwaggerInfo.Description = "API server for Mars application"
+	docs.SwaggerInfo.Title = "AtomHackFinalEmailService RestAPI"
+	docs.SwaggerInfo.Description = "API server for EmailService application"
 	docs.SwaggerInfo.Version = "1.0"
 	docs.SwaggerInfo.Host = "localhost:8081"
-	docs.SwaggerInfo.BasePath = "/api/v1"
+	docs.SwaggerInfo.BasePath = "/api"
 
-	// r.Use(middleware.CorsMiddleware())
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
@@ -29,13 +28,9 @@ func (app *Application) Run() {
 		AllowCredentials: true,
 	}))
 
-	ApiGroup := r.Group("/api/v1")
+	ApiGroup := r.Group("/api")
 	{
-		DocumentGroup := ApiGroup.Group("/document")
-		{
-			DocumentGroup.POST("/send-to-support", app.handler.SendToSupport)
-
-		}
+		ApiGroup.POST("/send-to-support", app.handler.SendToSupport)
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

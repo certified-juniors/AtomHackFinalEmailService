@@ -47,7 +47,6 @@ func (a *loginAuth) Next(fromServer []byte, more bool) ([]byte, error) {
 }
 
 func (c *SMTP) SendMailToSupport(subject, body string, attachments map[string][]byte) error {
-	// Подключение к SMTP серверу
 	conn, err := smtp.Dial(fmt.Sprintf("%s:%d", c.SMTPCfg.SmtpHost, c.SMTPCfg.SmtpPort))
 	if err != nil {
 		fmt.Println("Ошибка при подключении к SMTP серверу:", err)

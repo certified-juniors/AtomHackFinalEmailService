@@ -30,13 +30,9 @@ func (h *Handler) SendToSupport(c *gin.Context) {
 	email := c.PostForm("mail")
 	title := c.PostForm("title")
 	message := c.PostForm("message")
-	createdAt := c.PostForm("timestamp")
+	timestamp := c.PostForm("timestamp")
 
-	fmt.Println(c.PostForm("timestamp"))
-	fmt.Println(c.PostForm("createdAt"))
-	fmt.Println(c.PostForm("timestamp"))
-
-	createdTime, err := time.Parse(time.RFC3339, createdAt)
+	createdTime, err := time.Parse(time.RFC3339, timestamp)
 	if err != nil {
 		logrus.Errorf("Failed to parse timestamp: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to parse timestamp"})

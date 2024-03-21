@@ -19,7 +19,7 @@ import (
 // @Param mail formData string true "Email пользователя"
 // @Param title formData string true "Заголовок обращения"
 // @Param message formData string true "Сообщение"
-// @Param createdAt formData string true "Дата и время создания обращения в формате RFC3339"
+// @Param timestamp formData string true "Дата и время создания обращения в формате RFC3339"
 // @Param files formData file true "Файлы, прикрепленные к обращению"
 // @Success 200 {object} model.MessageResponse "Успешный ответ"
 // @Failure 400 {object} model.ErrorResponse "Ошибка в запросе"
